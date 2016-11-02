@@ -1,0 +1,178 @@
+
+Installation of JDeveloper 11.1.1.7.2
+Install Guide delivered within the repository.
+Repository unzipped under mpllnx0063:/busapps/ddoo/gb40/home/JDeveloper
+
+Run Linux Installer
+chmod +x jdevstudio11117install.bin
+./jdevstudio11117install.bin -mode=console
+ddoogb4a@mpllnx0063: ./jdevstudio11117install.bin -mode=console
+Extracting 0%....................................................................................................100%
+
+<------------------------------------------- Oracle Installer - Oracle JDeveloper 11g (11.1.1.7.2) ------------------------------------------->
+
+Welcome:
+--------
+
+This installer will guide you through the installation of Oracle JDeveloper 11g (11.1.1.7.2). Type "Next" or enter to proceed to the next 
+prompt.  If you want to change data entered previously, type "Previous".  You may quit the installer at any time by typing "Exit".
+
+Enter [Exit][Next]> Next
+
+<------------------------------------------- Oracle Installer - Oracle JDeveloper 11g (11.1.1.7.2) ------------------------------------------->
+
+Choose Oracle Middleware Home Directory:
+----------------------------------------
+
+    "Oracle Middleware Home" = [Enter new value or use default "/busapps/ddoo/gb40/home/Oracle/Middleware"]
+
+Enter new Oracle Middleware Home OR [Exit][Previous][Next]> /busapps/ddoo/gb40/Oracle/Jdev_Middleware
+
+<------------------------------------------- Oracle Installer - Oracle JDeveloper 11g (11.1.1.7.2) ------------------------------------------->
+
+Choose Oracle Middleware Home Directory:
+----------------------------------------
+
+    "Oracle Middleware Home" = [/busapps/ddoo/gb40/Oracle/Jdev_Middleware]
+
+Use above value or select another option:
+    1 - Enter new Oracle Middleware Home
+    2 - Change to default [/busapps/ddoo/gb40/home/Oracle/Middleware]
+
+Enter option number to select OR [Exit][Previous][Next]> Next
+
+<------------------------------------------- Oracle Installer - Oracle JDeveloper 11g (11.1.1.7.2) ------------------------------------------->
+
+Choose Install Type:
+--------------------
+
+Select the type of installation you wish to perform. 
+
+ ->1|Complete
+    |  Install the following software products:
+    | - JDeveloper and ADF
+    | - WebLogic Server
+
+   2|Custom
+    |  Choose software products and components to install and perform optional configuration.
+
+Enter index number to select OR [Exit][Previous][Next]> 1
+
+<------------------------------------------- Oracle Installer - Oracle JDeveloper 11g (11.1.1.7.2) ------------------------------------------->
+
+Confirm Product Installation Directories:
+-----------------------------------------
+
+    Oracle Middleware Home Directory: [/busapps/ddoo/gb40/Oracle/Jdev_Middleware]
+
+Product Installation Directories:
+
+JDeveloper and ADF: [/busapps/ddoo/gb40/Oracle/Jdev_Middleware/jdeveloper]
+WebLogic Server: [/busapps/ddoo/gb40/Oracle/Jdev_Middleware/wlserver_10.3]
+
+Enter [Exit][Previous][Next]> Next
+
+<------------------------------------------- Oracle Installer - Oracle JDeveloper 11g (11.1.1.7.2) ------------------------------------------->
+
+The following Products will be installed:
+-----------------------------------------
+
+    JDeveloper 11g (11.1.1.7.2) Studio Edition 11.1.1.7
+    |_____JDeveloper and ADF
+    |    |_____JDeveloper Studio
+    |    |_____Application Development Framework Runtime
+    |_____WebLogic Server
+    |    |_____Core Application Server
+    |    |_____Administration Console
+    |    |_____Configuration Wizard and Upgrade Framework
+    |    |_____WebLogic SCA
+    |    |_____WebLogic JDBC Drivers
+    |    |_____WebLogic Server Clients
+    |    |_____UDDI and Xquery Support
+    |_____JDKs
+         |_____SUN SDK 1.6.0_24
+
+    *Estimated size of installation: 1,616.6 MB
+
+Enter [Exit][Previous][Next]> Next
+Apr 7, 2014 1:50:32 PM java.util.prefs.FileSystemPreferences$2 run
+INFO: Created user preferences directory.
+
+<------------------------------------------- Oracle Installer - Oracle JDeveloper 11g (11.1.1.7.2) ------------------------------------------->
+
+Installing files..
+
+0%          25%          50%          75%          100%
+[------------|------------|------------|------------]
+[***************************************************]
+
+<------------------------------------------- Oracle Installer - Oracle JDeveloper 11g (11.1.1.7.2) ------------------------------------------->
+
+Installing JDK....
+
+0%          25%          50%          75%          100%
+[------------|------------|------------|------------]
+[***************************************************]
+
+Performing String Substitutions... 
+
+<------------------------------------------- Oracle Installer - Oracle JDeveloper 11g (11.1.1.7.2) ------------------------------------------->
+
+Configuring OCM...
+
+0%          25%          50%          75%          100%
+[------------|------------|------------|------------]
+[***************************************************]
+
+<------------------------------------------- Oracle Installer - Oracle JDeveloper 11g (11.1.1.7.2) ------------------------------------------->
+
+Installing Patches...
+
+0%          25%          50%          75%          100%
+[------------|------------|------------|------------]
+[***************************************************]
+
+Creating Domains...
+
+<------------------------------------------- Oracle Installer - Oracle JDeveloper 11g (11.1.1.7.2) ------------------------------------------->
+
+Installation Complete
+
+Congratulations! Installation is complete.
+
+Press [Enter] to continue or type [Exit]>
+
+Check JDev
+
+PREREQ : EM12C should be installed, because it delivers right version of JDK
+Update JAVA_HOME in jdev.conf 
+(under /busapps/ddoo/gb40/Oracle/Jdev_Middleware/jdeveloper/jdev/bin)
+
+#SetJavaHome /busapps/ddoo/gb40/Oracle/Jdev_Middleware/jdk160_24
+/busapps/ddoo/gb40/Oracle/OMS_Middleware/jdk16/jdk/
+
+On X Windows, run jdev
+./jdev
+ 
+
+
+Install extension for SOA composite editor
+
+ 
+
+ 
+
+ 
+ 
+ 
+
+ 
+Click on Finish
+
+Restart Jdev
+ 
+
+
+The end
+
+
