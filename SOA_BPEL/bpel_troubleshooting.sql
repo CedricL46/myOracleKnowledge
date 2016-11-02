@@ -35,8 +35,32 @@ where
   co.ecid='&ecidFromPrecedentSQL'
 order by ri.created_time desc;
 
--- SQL Query to identify an audit trail being set at a wrong level in production
 
+-- Queries to find a specific bpel instance to avoid flowtrace
+select distinct r.parent_id, ci2.title, ci2.created_time, ci.ecid
+from ps6_soainfra.CUBE_INSTANCE ci
+inner join ps6_soainfra.composite_instance ci2 on ci.cmpst_id = ci2.id
+inner join ps6_soainfra.REFERENCE_INSTANCE r on r.composite_instance_id = ci2.id
+where ci2.created_time > trunc(sysdate-1)
+and ci.composite_name = '&CompositeName' 
+and ci2.title = '$Title';
+
+-- Display the bpel instance that had a fault during the past 10 minutes
+select ci.title, ci.ecid, ci.composite_dn, ci.created_time,
+(SELECT count(1) FROM ps6_soainfra.REFERENCE_INSTANCE ri WHERE  ri.ecid = ci.ecid  and error_message is not null) +
+(select count(1) from ps6_soainfra.bpel_faults_vw bf where bf.ecid = ci.ecid) as nbfaults
+from ps6_soainfra.composite_instance ci
+where (select count(1) from ps6_soainfra.bpel_faults_vw bf where bf.ecid = ci.ecid) !=0
+and ci.created_time >= trunc(sysdate);
+
+select ci.title, ci.ecid, ci.composite_dn, ci.created_time,
+(SELECT count(1) FROM ps6_soainfra.REFERENCE_INSTANCE ri WHERE  ri.ecid = ci.ecid  and error_message is not null) +
+(select count(1) from ps6_soainfra.bpel_faults_vw bf where bf.ecid = ci.ecid) as nbfaults
+from ps6_soainfra.composite_instance ci
+where (select count(1) from ps6_soainfra.bpel_faults_vw bf where bf.ecid = ci.ecid) !=0
+and ci.created_time >= sysdate - 5/(24*60);
+
+-- SQL Query to identify an audit trail being set at a wrong level in production
 -- SQL to identify audit trail level issue
 select count(au.cikey) NbRowAuditTrail, ci.ecid, ci.composite_name
 from soa_user.audit_trail au
