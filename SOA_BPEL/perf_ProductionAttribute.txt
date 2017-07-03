@@ -1,0 +1,116 @@
+Revoir les configurations de performances BPEL : 
+
+Ci-dessous un rassemblement des préconisations Oracle pour l'optimisation des performances BPEL :
+
+
+Weblogic / Service / JTA : 
+
+ - Timeout Seconds : de 60 à 3600 
+
+Nombre de secondes par défaut pour le délai d'expiration des transactions. 
+Définir une valeur supérieure à la valeur par défaut permettra d'accorder plus de temps aux transactions globales longues et éviter les timeouts que l'on a souvent lors des pics de charge.
+
+ - Abandon Timeout Seconds : de 86400 à 3600 
+
+Après X nombre de secondes, arrête d'essayer de résoudre les branchements d'une transaction.
+Cela ne se produit que lorsque la ressource n'est plus disponible lors du commit. (~Jamais)
+Le réduire permet de libérer les ressources du transaction manager pendant la deuxième phase d'un two-phase commit.
+
+ - Maximum Duration of XA Calls : de 120 000 à 1 200 000
+A augmenter pour prendre en charge les instances très longues
+
+- EM / Weblogic Domain / DOMAINE-SOA-BPEL-LINKY / SOA-Admin-BPEL-LINKY / Configuration MBeans | com.bea | JTA / MaxXACallMillis : de 120 000 à 240 000
+
+Pour éviter de perdre des threads de serveur sur des ressources XA défectueuses, Oracle WebLogic Server JTA dispose d'un mécanisme interne de surveillance de la santé des ressources. 
+Une ressource est considérée comme active si elle est sans demande en attente ou si le résultat d'une demande de ressources XA n'a pas échoué. Si une ressource XA n'est pas active dans les deux minutes, le Oracle WebLogic Server transaction manager la déclare morte et toutes les autres demandes sont évitées.
+L'intervalle de deux minutes peut être configuré à l'aide de l'attribut MBEan JTA MaxXACallMillis. Il n'est actuellement pas exposé via la console d'administration Oracle WebLogic Server. Toutefois, on peut configurer MaxXACallMillis via EM :
+
+     Connectez-vous à EM
+     Naviguez vers le domaine WebLogic | [Domaine].
+     Cliquez avec le bouton droit sur AdminServer et sélectionnez System MBean Browser.
+     Développer la configuration MBeans | Com.bea | JTA et cliquez sur votre domaine.
+     Remplacez la valeur par défaut pour le MBEan MaxXACallMillis de lecture écriture (RW) à une valeur de 240000.
+     Cliquez sur le bouton Appliquer pour enregistrer ce nouveau paramètre.
+	 
+
+Weblogic / JDBC Data Sources / SOADataSource / Connection pool (faire la même chose pour EDNDataSource, EDNLocalTxDataSource, mds-soa, SOALocalTxDataSource)
+
+ - oracle.net.CONNECT_TIMEOUT : de 10 000 à 20 000
+On recoit de nombreuses erreurs de timeout des pool de connexion telles que weblogic.common.resourcepool.ResourceDeadException ou weblogic.common.ResourceException dans des scénarios où plusieurs instances utilisent plusieurs threads de connexion. 
+Lorsque ces erreurs se produisent, la base de données met fin à sa connexion. 
+La propriété oracle.net.CONNECT_TIMEOUT, définie pour SOADataSource, doit être définie à une valeur plus grande pour réduire le nombre de ces exceptions.
+
+ - Initial Capacity et Minimum capacity de 3 à 50 : 
+L'établissement d'une connexion JDBC sur une base Oracle peut être très lent. Si l'application nécessite des connexions de base de données qui sont ouvertes et fermées de façon répétée, cela peut devenir un problème de performance significatif. 
+Il est bon de commencer avec une grande valeur de Capacité initiale, de sorte que les connexions soient ouvertes et accessibles à tous les clients lors du démarrage du serveur.
+
+ - Maximum capacity : de 200 à 1500
+ On a de plus en plus de composite qui travaillent en parallèle et il faut permettre au nombres de connection parallèle d'augmenter.
+
+ - Capacity Increment : de 5 à 10
+La Capacity Increment doit être réglé à une valeur supérieure à la valeur par défaut, de sorte que chaque fois qu'une connexion est nécessaire, des connexions adéquates sont provisionnées.
+
+ - Inactive ConnectionTimeout : de 0 à 90
+ En cas de connection stuck ou leaked, ce paramètre permet à Weblogic de récupérer la connection après 90 seconds (0 = desactiver)
+  
+Weblogic / JDBC Data Sources / SOADataSource / Connection pool
+
+ - Rollback Local Tx Upon Connection Close de false à true
+Permet d'annuler toute transaction locale qui n'est pas engagée ou retournée avant de commencer une transaction globale.
+
+
+ EJB timeouts :
+ Oracle SOA Suite 11g contient un de EJB qui font partie de l'application SOA Infra (soa-infra). Chacun de ces EJB a un paramètre de délai d'attente prédéfini qui remplace celui défini à l'infrastructure. Par défaut, ceci est défini sur 300 secondes. Des erreurs de délai peuvent se produire dans le cas de processus de longue durée qui ralentissent le système SOA global. Les EJB suivants doivent donc être réglés pour participer aux transactions globales et éviter les délais:
+
+    BPELActivityManagerBean
+    BPELDeliveryBean
+    BPELDispatcherBean
+    BPELEngineBean
+    BPELFinderBean
+    BPELInstanceManagerBean
+    BPELProcessManagerBean
+    BPELServerManagerBean
+    BPELSensorValuesBean
+
+
+    Ouvrez la console d'administration Oracle Weblogic Server et cliquez sur Déploiements.
+    Cliquez sur le déploiement soa-infra.
+    Localisez et cliquez sur BPELActivityManagerBean.
+    Cliquez sur l'onglet Configuration.
+    Vous pouvez maintenant réinitialiser ici la valeur de délai de transaction pour ce MBean en remplaçant la valeur par défaut de 300 à 600 (en secondes).
+    Une fois que tous les changements sont enregistrés, vous devez mettre à jour le plan de déploiement de soa-infra et activer les modifications pour que ces modifications prennent effet.
+ 
+ 
+ EM /  SOA Administration | Common Properties | More SOA Infra Advanced Configuration Properties | Audit Config
+ 
+ - AuditConfig/policies/Element_0/isActive to False
+ - AuditConfig/policies/Element_0/name to Immediate
+ - AuditConfig/policies/Element_1/isActive to True
+ - AuditConfig/policies/Element_1/name to Deferred 
+ Par défaut, les données d'audit sont enregistrées de manière synchrone sur la base de données. Cela signifie que les instances resteront actives jusqu'à ce que les informations d'audit soient engagées dans la base de données. Cela ne fonctionne pas idéalement sous charge. En modifiant la politique de vérification à deffered, toutes les opérations de vérification sont invoquées de façon asynchrone, ce qui donne des performances comparables à la désactivation du niveau de vérification. (améliore fortement les performances)
+ 
+ 
+ Tuning BPEL Engine (EM / SOA Adminisstration / BPEL Properties)
+  - Audit Trail Threshold : de 50 000 à 20 000
+Cette propriété définit le seuil pour enregistrer les charges utiles des messages dans la table de déshydratation AUDIT_TRAIL. Les messages plus gros sont enregistrés dans la table AUDIT_DETAILS.
+Une grande valeure aidera au monitoring en ayant accès à la flow trace.
+  - Large Document threshold : de 100 000 à 2 000 000
+Tout document d'une taille supérieure à 100 Ko sera déshydraté par le moteur BPEL. Pour minimiser les aller retours à la base de données pour de gros documents il faut l'augmenter.
+ - Dispatcher System Threads : de 2 à 10
+Pour permettre au bpel engine de récupérer sa mémoire plus efficacement
+ - Dispatcher Engine Threads : de 25 à 100
+ Les threads affectés aux messages de processus générés par le moteur pendant une activité doivent être traités de manière asynchrone. Une fois que les instances sont reçues et hydratées, ces threads sont responsables de les choisir et de les traiter.
+S'il existe de nombreux processus avec de nombreux points de déshydratation, le réglage de ce MBean à une valeur plus élevée augmentera notre performance significativement.
+ - Dispatcher Invoke Threads : de 13 à 70
+Les threads appelés sont utilisés pour instancier de nouvelles instances dans le moteur. Il est impératif de permettre au moteurs de traiter plusieurs flux en parallèles.
+Cette propriété accélère le réglage de la charge de votre moteur BPEL et influe donc sur la performance de toutes les activités de réception dans le domaine.
+ - AuditStorePolicy to AsyncsyncLocal Transaction
+Pour modifier la stratégie de stockage de données d'audit pour enregistrer les données d'audit de manière asynchrone, en utilisant une transaction locale distincte.
+ - SyncMaxWaitTime de 45 à 300 
+ La propriété SyncMaxWaitTime détermine le délai d'attente pour les opérations de demande-réponse et doit être accordée pour les scénarios de traitement de message où les processus / services participants dépassent la valeur par défaut de 45 secondes.
+ 
+Tuning EM (EM / SOA Administration / Common Properties)
+ - Disable fetching of instance and fault count metrics : from false to true.
+ EM ne chergera plus toutes les métrics à chaque actions mais seulement sur demande de l'utilisateur.
+  - Restrict display of instance and fault to the last : de 24h à 5h.
+  EM ne chargeras que les 5 dernières heures
