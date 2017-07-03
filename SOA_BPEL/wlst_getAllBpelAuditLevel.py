@@ -19,22 +19,27 @@ list = ls(returnMap='true')
 redirect('/dev/null','true')
 
 #Retrieving SOA Composite Audit Levels using WLST
-print 'INFO: Listing SOA component audit Levels : '
+print 'INFO: Listing SOA component audit Levels that are not in inherit : '
 for composite in list:
 	   compositeObject = ObjectName(composite)
 	   compositeName = compositeObject.getKeyProperty('SCAComposite')
 	   componentName = compositeObject.getKeyProperty('name')
 	   # Retrieving Audit Level only for objects with j2eeType SCAComposite
+	   if compositeObject.getKeyProperty('j2eeType') == 'SCAComposite':
+			  # Properties of compositeObject
+			  compositeProperties  = mbs.getAttribute(compositeObject, 'Properties')
+			  for element in compositeProperties:
+				  if element.containsValue('auditLevel'):
+					  componentAuditLevelValue = element.get('value')
+					  print("compositeName =", componentName, " compositeAuditLevelValue =", componentAuditLevelValue)
 	   if compositeObject.getKeyProperty('j2eeType') == 'SCAComposite.SCAComponent':
 			  # Properties of compositeObject
 			  componentProperties = mbs.getAttribute(compositeObject, 'Properties')
 			  # Looping through elements in Properties
 			  for element in componentProperties:
-					   # print element
-					   componentAuditLevelValue = 'inherit' #if not set in bpel.config.auditLevel the default is inherit
 					   if element.containsValue('bpel.config.auditLevel'):
 					       componentAuditLevelValue = element.get('value')
-					   print("compositeName =", compositeName, " componentName =", componentName, " componentAuditLevelValue =", componentAuditLevelValue)
+					       print("compositeName =", compositeName, " componentName =", componentName, " componentAuditLevelValue =", componentAuditLevelValue)
 					   
 print 'INFO: ending the script ....'
 disconnect()
