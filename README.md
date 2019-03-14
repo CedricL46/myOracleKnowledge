@@ -1,2 +1,2 @@
 # myOracleKnowledge
-This repository aim to share what i learn working on Oracle Technology
+Everything was moved to gist : https://gist.github.com/CedricL46
